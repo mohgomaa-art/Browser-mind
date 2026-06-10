@@ -1,0 +1,14 @@
+task_id: greenhouse_apply
+description: Greenhouse job application submitted
+rationale: |
+  Success requires the post-submit confirmation page to render.
+  Greenhouse displays "Your application has been submitted" in
+  the body and the URL contains /confirmation or /thanks.
+conditions:
+  - kind: url_contains
+    target: thank
+    label: Confirmation URL fragment
+  - kind: element_text_contains
+    target: body
+    value: your application
+    label: Confirmation text visible

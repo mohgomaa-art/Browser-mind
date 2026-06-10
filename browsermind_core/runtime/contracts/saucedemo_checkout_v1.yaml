@@ -1,0 +1,14 @@
+task_id: saucedemo_checkout_v1
+description: SauceDemo full checkout flow (login → cart → checkout → complete)
+rationale: |
+  Success requires the browser to end on /checkout-complete.html
+  with the "Thank you for your order" header visible — proving
+  the order was actually submitted (not just navigated to).
+conditions:
+  - kind: url_contains
+    target: /checkout-complete.html
+    label: Order completion page reached
+  - kind: element_text_contains
+    target: .complete-header
+    value: thank you
+    label: Confirmation header visible

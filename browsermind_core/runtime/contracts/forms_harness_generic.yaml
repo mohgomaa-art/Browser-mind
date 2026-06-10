@@ -1,0 +1,14 @@
+task_id: forms_harness_generic
+description: Generic form submission — form submitted and acknowledgment shown
+rationale: >
+  A form submission is confirmed when the page no longer shows the input
+  form in an editable state AND a success acknowledgment is visible,
+  distinguishing true submission from a page reload with the form still present.
+conditions:
+  - kind: element_text_contains
+    target: "[role='alert'], [role='status'], .alert-success, .success-message, [data-testid='success'], body"
+    value: "submitted"
+    label: submission_confirmed_text
+  - kind: element_visible
+    target: "[role='alert'], [role='status'], .alert-success, .success-message, [data-testid='success'], .form-success"
+    label: success_indicator_visible

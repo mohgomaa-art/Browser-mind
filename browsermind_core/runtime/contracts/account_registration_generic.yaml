@@ -1,0 +1,14 @@
+task_id: account_registration_generic
+description: Generic account registration — new account created and welcome/verify state shown
+rationale: >
+  Registration is complete when the URL indicates a post-registration state
+  (welcome, verify-email, registration-complete) AND the page carries
+  a welcome or verification prompt, confirming account creation succeeded.
+conditions:
+  - kind: url_contains
+    target: "welcome"
+    label: url_welcome
+  - kind: element_text_contains
+    target: "h1, h2, [role='heading'], body"
+    value: "welcome"
+    label: welcome_heading

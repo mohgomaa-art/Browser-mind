@@ -1,0 +1,142 @@
+/* styles.qss */
+
+QWidget {
+    background-color: #1E1E1E;
+    color: #D4D4D4;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+}
+
+/* Sidebar Navigation */
+QListWidget#sidebar {
+    background-color: #252526;
+    border: none;
+    border-right: 1px solid #333333;
+    padding-top: 10px;
+}
+
+QListWidget#sidebar::item {
+    padding: 12px 20px;
+    border-radius: 4px;
+    margin: 2px 10px;
+}
+
+QListWidget#sidebar::item:hover {
+    background-color: #2A2D2E;
+}
+
+QListWidget#sidebar::item:selected {
+    background-color: #094771;
+    color: white;
+    font-weight: bold;
+}
+
+/* Tables / Lists */
+QTableWidget, QListWidget {
+    background-color: #1E1E1E;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    gridline-color: #333333;
+}
+
+QHeaderView::section {
+    background-color: #252526;
+    color: #CCCCCC;
+    padding: 6px;
+    border: none;
+    border-right: 1px solid #333333;
+    border-bottom: 1px solid #333333;
+    font-weight: bold;
+}
+
+/* Buttons */
+QPushButton {
+    background-color: #0E639C;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background-color: #1177BB;
+}
+
+QPushButton:pressed {
+    background-color: #094771;
+}
+
+QPushButton#danger {
+    background-color: #E51400;
+}
+QPushButton#danger:hover {
+    background-color: #F14C4C;
+}
+
+QPushButton#warning {
+    background-color: #D7BA7D;
+    color: #1E1E1E;
+}
+QPushButton#warning:hover {
+    background-color: #E2C08D;
+}
+
+QPushButton#success {
+    background-color: #4CAF50;
+}
+QPushButton#success:hover {
+    background-color: #66BB6A;
+}
+
+/* Inputs */
+QLineEdit, QTextEdit {
+    background-color: #3C3C3C;
+    border: 1px solid #555555;
+    border-radius: 4px;
+    padding: 6px;
+    color: white;
+}
+
+QLineEdit:focus, QTextEdit:focus {
+    border: 1px solid #007ACC;
+}
+
+/* Labels */
+QLabel#header {
+    font-size: 20px;
+    font-weight: bold;
+    color: #FFFFFF;
+    margin-bottom: 10px;
+}
+
+QLabel#subheader {
+    font-size: 16px;
+    font-weight: bold;
+    color: #CCCCCC;
+    margin-top: 10px;
+}
+
+/* Splitter */
+QSplitter::handle {
+    background-color: #333333;
+    width: 2px;
+}
+
+/* Bottom prompt */
+QWidget#promptBar {
+    background-color: #252526;
+    border-top: 1px solid #333333;
+}
+
+QLabel#promptStatus {
+    color: #B5CEA8;
+    font-size: 13px;
+    padding: 6px 4px;
+    background-color: #2D2D30;
+    border-radius: 4px;
+}
+
+QPushButton#primaryButton {
+    min-width: 72px;
+}

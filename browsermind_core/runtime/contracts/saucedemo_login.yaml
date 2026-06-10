@@ -1,0 +1,9 @@
+task_id: saucedemo_login
+description: SauceDemo authenticated session reached
+rationale: |
+  Success requires URL contains /inventory.html — proving login
+  completed and the catalog page loaded.
+conditions:
+  - kind: url_contains
+    target: /inventory.html
+    label: Inventory page reached (login succeeded)

@@ -1,0 +1,14 @@
+task_id: multi_step_wizard_generic
+description: Generic multi-step wizard completion — all steps completed and final confirmation shown
+rationale: >
+  A wizard is complete when the URL indicates a terminal state (complete,
+  success, done, finish) AND explicit completion text is present, confirming
+  the user reached the final step rather than an intermediate one.
+conditions:
+  - kind: url_contains
+    target: "complete"
+    label: url_complete
+  - kind: element_text_contains
+    target: "h1, h2, [role='heading'], .completion-heading, [data-testid='completion-title']"
+    value: "complete"
+    label: completion_heading

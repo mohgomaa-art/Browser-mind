@@ -1,0 +1,16 @@
+# Local reference material and generated notes.
+reference/
+work-reference/
+AGENTS.md
+CLAUDE.md
+.agents/
+skills-lock.json
+
+# Generated artifacts and local caches.
+dist/
+.ruff_cache/
+__pycache__/
+
+# macOS/editor noise.
+.DS_Store
+*.swp

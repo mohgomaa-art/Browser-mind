@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% set active = 'snapshots' %}
+{% block title %}Campaign Trend — BrowserMind Timeline{% endblock %}
+
+{% block body %}
+<section class="section">
+  <h2>Campaign Snapshots ({{ rows|length }} samples)</h2>
+  {% if rows %}
+    <p style="color: var(--muted); font-size: 12px;">
+      Tail of <code>~/.browsermind/campaign_snapshots.jsonl</code>. Run
+      <code>python scripts/campaign_snapshot.py --interval 60</code> in a separate terminal during a replay campaign to populate this.
+    </p>
+    <table class="executions">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Steps</th>
+          <th>Step success</th>
+          <th>Effect verified</th>
+          <th>Executions</th>
+          <th>Exec success</th>
+          <th>Unknown fields</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows | reverse %}
+          <tr>
+            <td class="timestamp">{{ r.timestamp[:19].replace('T', ' ') }}</td>
+            <td class="mono">{{ r.total_steps }}</td>
+            <td>
+              <span class="pill {{ 'ok' if r.step_success_rate >= 0.9 else ('warn' if r.step_success_rate >= 0.5 else 'fail') }}">
+                {{ '%.0f%%' % (r.step_success_rate * 100) }}
+              </span>
+            </td>
+            <td>
+              <span class="pill {{ 'ok' if r.effect_verified_rate >= 0.6 else 'muted' }}">
+                {{ '%.0f%%' % (r.effect_verified_rate * 100) }}
+              </span>
+            </td>
+            <td class="mono">{{ r.total_executions }}</td>
+            <td>
+              <span class="pill {{ 'ok' if r.execution_success_rate >= 0.7 else ('warn' if r.execution_success_rate >= 0.3 else 'fail') }}">
+                {{ '%.0f%%' % (r.execution_success_rate * 100) }}
+              </span>
+            </td>
+            <td class="mono">{{ r.unknown_field_count }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty">
+      No snapshots yet. Run <code>python scripts/campaign_snapshot.py --interval 60</code>
+      in a separate terminal during your replay campaign.
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

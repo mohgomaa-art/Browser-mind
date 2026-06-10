@@ -1,0 +1,13 @@
+task_id: ecommerce_search_generic
+description: Generic e-commerce search — search executed and results page rendered
+rationale: >
+  A search is successful when the URL reflects a search query parameter AND
+  a results container is visible, confirming results were returned rather
+  than a redirect to an error or empty state.
+conditions:
+  - kind: url_contains
+    target: "search"
+    label: url_contains_search
+  - kind: element_visible
+    target: "[data-testid='search-results'], [aria-label='Search results'], .search-results, .product-list, .results-list, [data-testid='product-grid']"
+    label: results_container_visible

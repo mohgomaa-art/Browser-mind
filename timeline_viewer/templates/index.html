@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% set active = 'executions' %}
+{% block title %}Executions — BrowserMind Timeline{% endblock %}
+
+{% block body %}
+<section class="banner">
+  <div class="card">
+    <div class="label">Executions</div>
+    <div class="value">{{ stats.total_executions }}</div>
+    <div class="sub">{{ stats.successful_executions }} successful ({{ '%.0f%%' % (stats.execution_success_rate * 100) }})</div>
+  </div>
+  <div class="card">
+    <div class="label">Step success</div>
+    <div class="value">{{ '%.0f%%' % (stats.step_success_rate * 100) }}</div>
+    <div class="sub">{{ stats.successful_steps }} / {{ stats.total_steps }} steps</div>
+  </div>
+  <div class="card">
+    <div class="label">Effect verified</div>
+    <div class="value">{{ '%.0f%%' % (stats.effect_verified_rate * 100) }}</div>
+    <div class="sub">of probed successes (True / (True+False))</div>
+    <div class="sub">True: {{ stats.effect_verified_true }} &nbsp;|&nbsp; False: {{ stats.effect_verified_false }} &nbsp;|&nbsp; Unprobed: {{ stats.effect_verified_none }}</div>
+  </div>
+  <div class="card">
+    <div class="label">Unknown fields</div>
+    <div class="value">{{ stats.unknown_field_count }}</div>
+    <div class="sub">awaiting Teacher Mode</div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Filters</h2>
+  <form class="filters" method="get" action="/">
+    <select name="env">
+      <option value="">All environments</option>
+      {% for env in all_envs %}
+        <option value="{{ env }}" {% if filters.env == env %}selected{% endif %}>{{ env }}</option>
+      {% endfor %}
+    </select>
+    <select name="template">
+      <option value="">All templates</option>
+      {% for tpl in all_templates %}
+        <option value="{{ tpl }}" {% if filters.template == tpl %}selected{% endif %}>{{ tpl }}</option>
+      {% endfor %}
+    </select>
+    <select name="success">
+      <option value="">Any outcome</option>
+      <option value="yes" {% if filters.success == 'yes' %}selected{% endif %}>Successful only</option>
+      <option value="no" {% if filters.success == 'no' %}selected{% endif %}>Failed only</option>
+    </select>
+    <button type="submit">Apply</button>
+    {% if filters.env or filters.template or filters.success %}
+      <a href="/" class="clear">Clear</a>
+    {% endif %}
+  </form>
+</section>
+
+<section class="section">
+  <h2>Executions ({{ executions|length }})</h2>
+  {% if executions %}
+  <table class="executions">
+    <thead>
+      <tr>
+        <th>Started</th>
+        <th>Environment</th>
+        <th>Template</th>
+        <th>Steps</th>
+        <th>Step success</th>
+        <th>Effect verified</th>
+        <th>Outcome</th>
+        <th>ID</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in executions %}
+      <tr onclick="window.location='/execution/{{ e.execution_id }}'">
+        <td class="timestamp">{{ e.started_at[:19].replace('T', ' ') }}</td>
+        <td>{{ e.environment or '—' }}</td>
+        <td>{{ e.template_name or '—' }}</td>
+        <td class="mono">{{ e.successful_steps }} / {{ e.total_steps }}</td>
+        <td>
+          <span class="pill {{ 'ok' if e.success_rate >= 0.9 else ('warn' if e.success_rate >= 0.5 else 'fail') }}">
+            {{ '%.0f%%' % (e.success_rate * 100) }}
+          </span>
+        </td>
+        <td>
+          <span class="pill {{ 'ok' if e.effect_verified_rate >= 0.6 else 'muted' }}">
+            {{ '%.0f%%' % (e.effect_verified_rate * 100) }}
+          </span>
+        </td>
+        <td>
+          {% if e.overall_success %}
+            <span class="pill ok">success</span>
+          {% else %}
+            <span class="pill fail">failed</span>
+          {% endif %}
+        </td>
+        <td class="id-short">{{ e.execution_id[:8] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <div class="empty">No executions match the current filters.</div>
+  {% endif %}
+</section>
+
+<section class="section distribution">
+  <div>
+    <h2>Resolver wins (top 10)</h2>
+    <table>
+      <thead><tr><th>Strategy</th><th class="num">Wins</th></tr></thead>
+      <tbody>
+        {% for strategy, count in stats.resolver_wins_top %}
+          <tr><td class="mono">{{ strategy }}</td><td class="num">{{ count }}</td></tr>
+        {% endfor %}
+        {% if not stats.resolver_wins_top %}
+          <tr><td colspan="2" class="empty">No resolver data yet.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+  <div>
+    <h2>Failure classes (top 10)</h2>
+    <table>
+      <thead><tr><th>Class</th><th class="num">Count</th></tr></thead>
+      <tbody>
+        {% for cls, count in stats.failure_classes_top %}
+          <tr><td class="mono">{{ cls }}</td><td class="num">{{ count }}</td></tr>
+        {% endfor %}
+        {% if not stats.failure_classes_top %}
+          <tr><td colspan="2" class="empty">No failures recorded.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

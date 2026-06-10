@@ -1,0 +1,8 @@
+workflow: exp_saucedemo_checkout
+success:
+  - type: url_contains
+    value: checkout-complete
+  - type: element_exists
+    selector: ".complete-header"
+  - type: text_present
+    value: "Thank you for your order!"

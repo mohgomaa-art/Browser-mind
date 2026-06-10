@@ -1,0 +1,6 @@
+workflow: exp_github_nav
+success:
+  - type: url_contains
+    value: "github.com"
+  - type: text_present
+    value: "microsoft/playwright"

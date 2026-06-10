@@ -1,0 +1,13 @@
+task_id: calendar_booking_generic
+description: Generic calendar/appointment booking — appointment booked and confirmation shown
+rationale: >
+  A booking is confirmed when a confirmation URL pattern is present AND
+  the page carries explicit booking confirmation text with date/time context.
+conditions:
+  - kind: url_contains
+    target: "confirm"
+    label: url_confirmation
+  - kind: element_text_contains
+    target: "body"
+    value: "booked"
+    label: booking_confirmed_text

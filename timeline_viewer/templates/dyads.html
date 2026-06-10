@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% set active = 'dyads' %}
+{% block title %}Dyads — BrowserMind Timeline{% endblock %}
+
+{% block body %}
+<section class="banner">
+  <div class="card">
+    <div class="label">Dyads observed</div>
+    <div class="value">{{ rows|length }}</div>
+    <div class="sub">(persona × environment) pairs with at least one record</div>
+  </div>
+  <div class="card">
+    <div class="label">Cascade-annotated</div>
+    <div class="value">{{ '%.0f%%' % (cascade.annotation_rate * 100) }}</div>
+    <div class="sub">{{ cascade.annotated_records }} / {{ cascade.total_records }} records</div>
+  </div>
+  <div class="card">
+    <div class="label">Workflow classes seen</div>
+    <div class="value">{{ cascade.by_workflow_class|length }}</div>
+    <div class="sub">{{ cascade.by_workflow_class.keys() | list | join(', ') if cascade.by_workflow_class else '—' }}</div>
+  </div>
+  <div class="card">
+    <div class="label">Distal layers populated</div>
+    <div class="value">{{ cascade.by_proxy_for|length }}</div>
+    <div class="sub">none yet — reserved for future ingestion</div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Dyad table — observational lens, not persistence</h2>
+  <p style="color: var(--muted); font-size: 12px;">
+    This table is a materialized view over the OutcomeLedger. It is not a
+    stored entity. Refresh the page to recompute.
+  </p>
+  {% if rows %}
+  <table class="executions">
+    <thead>
+      <tr>
+        <th>Persona</th>
+        <th>Environment</th>
+        <th>Steps</th>
+        <th>Step success</th>
+        <th>Effect verified</th>
+        <th>Ambiguity</th>
+        <th>Templates</th>
+        <th>Last seen</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in rows %}
+      <tr>
+        <td class="id-short">{{ d.persona_short }}</td>
+        <td>{{ d.environment_instance }}</td>
+        <td class="mono">{{ d.successful_steps }} / {{ d.step_count }}</td>
+        <td>
+          <span class="pill {{ 'ok' if d.success_rate >= 0.9 else ('warn' if d.success_rate >= 0.5 else 'fail') }}">
+            {{ '%.0f%%' % (d.success_rate * 100) }}
+          </span>
+        </td>
+        <td>
+          <span class="pill {{ 'ok' if d.effect_verified_rate >= 0.6 else 'muted' }}">
+            {{ '%.0f%%' % (d.effect_verified_rate * 100) }}
+          </span>
+        </td>
+        <td>
+          <span class="pill {{ 'fail' if d.ambiguity_rate >= 0.10 else ('warn' if d.ambiguity_rate >= 0.03 else 'muted') }}">
+            {{ '%.0f%%' % (d.ambiguity_rate * 100) }}
+          </span>
+        </td>
+        <td class="mono">{{ d.distinct_templates }}</td>
+        <td class="timestamp">{{ d.last_seen[:19].replace('T', ' ') if d.last_seen else '' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <div class="empty">No dyads observed yet. Run replays to populate.</div>
+  {% endif %}
+</section>
+
+<section class="section distribution">
+  <div>
+    <h2>Cascade — records by workflow class</h2>
+    <table>
+      <thead><tr><th>Class</th><th class="num">Records</th></tr></thead>
+      <tbody>
+        {% for cls, count in cascade.by_workflow_class.items() %}
+          <tr><td class="mono">{{ cls }}</td><td class="num">{{ count }}</td></tr>
+        {% endfor %}
+        {% if not cascade.by_workflow_class %}
+          <tr><td colspan="2" class="empty">No cascade-annotated records yet.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+  <div>
+    <h2>Cascade — records by layer</h2>
+    <table>
+      <thead><tr><th>Layer</th><th class="num">Records</th></tr></thead>
+      <tbody>
+        {% for layer, count in cascade.by_layer.items() %}
+          <tr><td class="mono">{{ layer }} {% if layer == 1 %}(step / proximal){% elif layer == 2 %}(execution){% else %}(other){% endif %}</td><td class="num">{{ count }}</td></tr>
+        {% endfor %}
+        {% if not cascade.by_layer %}
+          <tr><td colspan="2" class="empty">No cascade-annotated records yet.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

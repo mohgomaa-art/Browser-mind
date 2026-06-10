@@ -1,0 +1,33 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDEs
+.vscode/
+.idea/
+
+# Environment
+.venv/
+venv/
+env/
+ENV/
+
+# BrowserMind specific
+.bm_demo/
+.browsermind/
+browsermind_source.zip
+
+# Large files
+*.pt
+*.zip
+*.log
+*.json
+pipeline_results/
+exports/
+reports/
+audits/
+logs/
+benchmarks/
+training/gold/
+*.txt
+scratch/

@@ -1,0 +1,6 @@
+workflow: exp_static_wikipedia_search
+success:
+  - type: url_contains
+    value: "wikipedia.org"
+  - type: element_exists
+    selector: "#firstHeading"

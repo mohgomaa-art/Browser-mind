@@ -1,0 +1,14 @@
+task_id: subscription_signup_generic
+description: Generic subscription/plan signup — payment processed and subscription active
+rationale: >
+  A subscription is confirmed when the URL indicates a success state AND
+  the page carries explicit subscription confirmation text, ruling out
+  a payment form still being displayed.
+conditions:
+  - kind: url_contains
+    target: "success"
+    label: url_success
+  - kind: element_text_contains
+    target: "body"
+    value: "subscription"
+    label: subscription_confirmed_text

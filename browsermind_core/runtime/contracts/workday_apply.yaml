@@ -1,0 +1,11 @@
+task_id: workday_apply
+description: Workday job application submitted
+rationale: |
+  Workday's post-submit screen shows "You have submitted your
+  application" or "Application Submitted" depending on tenant.
+  Most tenants also navigate to a URL containing /mySubmissions.
+conditions:
+  - kind: element_text_contains
+    target: body
+    value: application submitted
+    label: Workday confirmation text visible

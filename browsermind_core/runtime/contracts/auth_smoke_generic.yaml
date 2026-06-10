@@ -1,0 +1,13 @@
+task_id: auth_smoke_generic
+description: Generic authentication success — user is authenticated and on a non-login page
+rationale: >
+  A login is considered successful when the URL no longer contains login/signin
+  patterns AND a logout affordance is present, confirming a live authenticated
+  session rather than a cached redirect.
+conditions:
+  - kind: element_visible
+    target: "[aria-label='Sign out'], [aria-label='Log out'], [aria-label='Logout'], [data-testid='logout'], [data-testid='user-menu'], [data-testid='avatar'], .logout-btn, button:has-text('Sign out'), button:has-text('Log out')"
+    label: logout_affordance_visible
+  - kind: element_visible
+    target: "[role='navigation'], [role='main'], [data-testid='dashboard'], [data-testid='home'], .app-shell, .dashboard, .main-content"
+    label: authenticated_shell_visible

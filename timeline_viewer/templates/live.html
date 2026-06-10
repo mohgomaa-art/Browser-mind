@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% set active = 'live' %}
+{% block title %}Live Workspace — BrowserMind Timeline{% endblock %}
+
+{% block body %}
+<section class="banner">
+  <div class="card">
+    <div class="label">Status</div>
+    <div class="value" id="live-status">
+      {% if state.live %}
+        <span class="pill ok">live</span>
+      {% elif state.stale %}
+        <span class="pill warn">stale</span>
+      {% else %}
+        <span class="pill muted">idle</span>
+      {% endif %}
+    </div>
+    <div class="sub" id="live-age">
+      {% if state.live %}updated {{ '%.1f' % state.age_seconds }}s ago
+      {% elif state.stale %}stale ({{ '%.0f' % state.age_seconds }}s)
+      {% else %}no replay running
+      {% endif %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="label">Steps so far</div>
+    <div class="value" id="live-steps">{{ state.step_count_so_far if state.step_count_so_far is defined else '—' }}</div>
+    <div class="sub" id="live-success">
+      {% if state.successful_so_far is defined %}
+        {{ state.successful_so_far }} ok / {{ state.failed_so_far }} failed
+      {% else %}—{% endif %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="label">Persona</div>
+    <div class="value mono" id="live-persona" style="font-size: 16px;">{{ state.persona_name or '—' }}</div>
+    <div class="sub" id="live-persona-id">{{ state.persona_id[:8] if state.persona_id else '' }}</div>
+  </div>
+  <div class="card">
+    <div class="label">Environment</div>
+    <div class="value mono" id="live-env" style="font-size: 16px;">{{ state.environment_instance or '—' }}</div>
+    <div class="sub" id="live-template">{{ state.template_name or '' }}</div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Current step</h2>
+  <ul class="kv-list">
+    <li><span class="k">step_seq</span><span class="v" id="live-step-seq">#{{ state.current_step_seq if state.current_step_seq is defined else '—' }}</span></li>
+    <li><span class="k">action</span><span class="v" id="live-action">{{ state.current_action or '—' }}</span></li>
+    <li><span class="k">target_role</span><span class="v" id="live-role">{{ state.current_target_role or '—' }}</span></li>
+    <li><span class="k">target_name</span><span class="v" id="live-target">{{ state.current_target_name or '—' }}</span></li>
+    <li><span class="k">strategy</span><span class="v" id="live-strategy">{{ state.current_strategy or '—' }}</span></li>
+    <li><span class="k">execution_id</span><span class="v" id="live-exec">{{ state.execution_id[:8] if state.execution_id else '—' }}</span></li>
+    <li><span class="k">last_update</span><span class="v" id="live-update">{{ state.last_update_ts or '—' }}</span></li>
+  </ul>
+  {% if state.execution_id %}
+    <p style="margin-top: 12px;">
+      <a href="/execution/{{ state.execution_id }}">View this execution in the Timeline →</a>
+    </p>
+  {% endif %}
+</section>
+
+{% if not state.live and not state.stale %}
+<section class="section">
+  <div class="empty">
+    No replay is currently running. The Live Workspace polls
+    <code>~/.browsermind/_live_state.json</code> every 2 seconds. Start a replay
+    (<code>python bm.py replay start &lt;template&gt; --persona &lt;name&gt; --env &lt;env&gt;</code>)
+    and this page will update automatically.
+  </div>
+</section>
+{% elif state.stale %}
+<section class="section">
+  <div class="empty">
+    Last update was {{ '%.0f' % state.age_seconds }} seconds ago — stale. The replay
+    may have ended without writing a final state, or the runtime is paused.
+  </div>
+</section>
+{% endif %}
+
+<details class="raw">
+  <summary>Raw state JSON</summary>
+  <pre id="live-raw">{{ state | tojson(indent=2) }}</pre>
+</details>
+
+<script>
+async function refreshLive() {
+  try {
+    const r = await fetch('/api/live', {cache: 'no-store'});
+    if (!r.ok) return;
+    const s = await r.json();
+    const setText = (id, v) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = (v === null || v === undefined || v === '') ? '—' : v;
+    };
+    const setHTML = (id, v) => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = v;
+    };
+    let statusBadge;
+    if (s.live) statusBadge = '<span class="pill ok">live</span>';
+    else if (s.stale) statusBadge = '<span class="pill warn">stale</span>';
+    else statusBadge = '<span class="pill muted">idle</span>';
+    setHTML('live-status', statusBadge);
+    if (s.live) setText('live-age', 'updated ' + s.age_seconds.toFixed(1) + 's ago');
+    else if (s.stale) setText('live-age', 'stale (' + Math.round(s.age_seconds) + 's)');
+    else setText('live-age', 'no replay running');
+    setText('live-steps', s.step_count_so_far);
+    if (s.successful_so_far !== undefined) {
+      setText('live-success', s.successful_so_far + ' ok / ' + s.failed_so_far + ' failed');
+    }
+    setText('live-persona', s.persona_name);
+    setText('live-persona-id', s.persona_id ? s.persona_id.substring(0, 8) : '');
+    setText('live-env', s.environment_instance);
+    setText('live-template', s.template_name);
+    setText('live-step-seq', s.current_step_seq !== undefined ? '#' + s.current_step_seq : '—');
+    setText('live-action', s.current_action);
+    setText('live-role', s.current_target_role);
+    setText('live-target', s.current_target_name);
+    setText('live-strategy', s.current_strategy);
+    setText('live-exec', s.execution_id ? s.execution_id.substring(0, 8) : '—');
+    setText('live-update', s.last_update_ts);
+    const raw = document.getElementById('live-raw');
+    if (raw) raw.textContent = JSON.stringify(s, null, 2);
+  } catch (e) {
+    /* ignore transient errors; next poll will retry */
+  }
+}
+setInterval(refreshLive, 2000);
+</script>
+{% endblock %}

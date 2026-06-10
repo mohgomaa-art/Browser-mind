@@ -1,0 +1,1 @@
+# BrowserMind API sidecar package

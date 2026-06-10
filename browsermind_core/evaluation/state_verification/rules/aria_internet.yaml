@@ -1,0 +1,6 @@
+workflow: exp_aria_login
+success:
+  - type: url_contains
+    value: secure
+  - type: element_exists
+    selector: ".flash.success"

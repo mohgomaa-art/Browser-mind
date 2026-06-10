@@ -1,0 +1,13 @@
+task_id: pagination_traverse_generic
+description: Generic pagination — user navigated to a target page number in paginated results
+rationale: >
+  Pagination navigation is confirmed when the URL contains a page parameter
+  AND the current-page aria indicator reflects the target page, confirming
+  actual navigation rather than a stale render.
+conditions:
+  - kind: url_contains
+    target: "page"
+    label: url_contains_page_param
+  - kind: element_visible
+    target: "[aria-current='page'], [data-testid='current-page'], .pagination .active, .page-item.active"
+    label: current_page_indicator_visible

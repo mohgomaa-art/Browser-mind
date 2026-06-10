@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% set active = 'teacher' %}
+{% block title %}Teacher Queue — BrowserMind Timeline{% endblock %}
+
+{% block body %}
+<section class="banner">
+  <div class="card">
+    <div class="label">Unknown labels</div>
+    <div class="value">{{ queue.total }}</div>
+    <div class="sub">awaiting field-registry annotation</div>
+  </div>
+  <div class="card">
+    <div class="label">Distinct labels</div>
+    <div class="value">{{ queue.summary|length }}</div>
+    <div class="sub">unique target names that didn't resolve</div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Most-frequent unknown labels</h2>
+  <p style="color: var(--muted); font-size: 12px;">
+    These labels appeared in templates the resolver could not classify against the
+    Field Registry. Adding aliases to existing fields (or registering new fields)
+    is done at the CLI: <code>python bm.py field add-alias --id &lt;field&gt; --alias &lt;label&gt;</code>.
+  </p>
+  {% if queue.summary %}
+  <table class="executions">
+    <thead><tr><th>Target name</th><th class="num">Occurrences</th><th>Suggested action</th></tr></thead>
+    <tbody>
+      {% for s in queue.summary %}
+      <tr>
+        <td class="mono">{{ s.target_name }}</td>
+        <td class="num">{{ s.occurrences }}</td>
+        <td class="timestamp">
+          <code>python bm.py field add-alias --id &lt;field&gt; --alias "{{ s.target_name }}"</code>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <div class="empty">
+      Teacher queue is empty. Either the Field Registry covers every recorded label,
+      or no failed-resolution writes have reached the queue (writer path runs only on
+      <code>TargetResolutionError</code>).
+    </div>
+  {% endif %}
+</section>
+
+{% if queue.entries %}
+<section class="section">
+  <h2>Recent occurrences</h2>
+  <table class="executions">
+    <thead><tr><th>Timestamp</th><th>Target</th><th>Container label</th><th>Step</th><th>Execution</th></tr></thead>
+    <tbody>
+      {% for it in queue.entries[:50] %}
+      <tr>
+        <td class="timestamp">{{ it.timestamp[:19].replace('T', ' ') if it.timestamp else '' }}</td>
+        <td class="mono">{{ it.target_name }}</td>
+        <td>{{ it.container_label or '—' }}</td>
+        <td class="mono">#{{ it.step_seq if it.step_seq is not none else '?' }}</td>
+        <td class="id-short">
+          {% if it.execution_id %}
+          <a href="/execution/{{ it.execution_id }}">{{ it.execution_id[:8] }}</a>
+          {% else %}
+          —
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrowserMind Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --border: #30363d;
+            --accent: #58a6ff;
+            --text: #c9d1d9;
+            --text-dim: #8b949e;
+            --green: #3fb950;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Header --- */
+        header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(13, 17, 23, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .logo {
+            font-weight: 600;
+            font-size: 1.25rem;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo span {
+            color: var(--accent);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            border: 1px solid var(--accent);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* --- Main Layout --- */
+        main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            padding: 2rem;
+            gap: 2rem;
+        }
+
+        /* --- Chat Section --- */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-width: 600px;
+        }
+
+        .input-area {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            transition: border-color 0.2s;
+        }
+
+        .input-area:focus-within {
+            border-color: var(--accent);
+        }
+
+        textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 1rem;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            height: 80px;
+        }
+
+        .btn-send {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            float: right;
+            margin-top: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn-send:hover {
+            opacity: 0.9;
+        }
+
+        .btn-send:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+        }
+
+        /* --- Log Section --- */
+        .log-container {
+            flex: 1.5;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .log-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #log-screen {
+            flex: 1;
+            padding: 1.5rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            overflow-y: auto;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .log-entry { margin-bottom: 0.5rem; }
+        .log-thought { color: var(--accent); }
+        .log-action  { color: var(--green); }
+        .log-system  { color: var(--text-dim); }
+
+        /* --- Scrollbar --- */
+        #log-screen::-webkit-scrollbar { width: 8px; }
+        #log-screen::-webkit-scrollbar-track { background: transparent; }
+        #log-screen::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">BrowserMind <span>Studio</span></div>
+        <div id="status" style="color: var(--text-dim); font-size: 0.875rem;">Status: Ready</div>
+    </header>
+
+    <main>
+        <div class="chat-container">
+            <div class="input-area">
+                <textarea id="goal-input" placeholder="Type a task for the agent... (e.g. 'Check NVIDIA stock on Google')"></textarea>
+                <button id="send-btn" class="btn-send">Execute Task</button>
+            </div>
+            
+            <div style="margin-top: auto; color: var(--text-dim); font-size: 0.875rem;">
+                <p>💡 Tip: Headful browser window will appear on your desktop once the task begins.</p>
+            </div>
+        </div>
+
+        <div class="log-container">
+            <div class="log-header">
+                <span>THOUGHT MONITOR</span>
+                <span id="cycle-node">IDLE</span>
+            </div>
+            <div id="log-screen">
+                <div class="log-system">Waiting for initial command...</div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const logScreen = document.getElementById('log-screen');
+        const goalInput = document.getElementById('goal-input');
+        const sendBtn = document.getElementById('send-btn');
+        const statusEl = document.getElementById('status');
+
+        function log(msg, type = 'system') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            logScreen.appendChild(entry);
+            logScreen.scrollTop = logScreen.scrollHeight;
+        }
+
+        async function executeTask() {
+            const goal = goalInput.value.trim();
+            if (!goal) return;
+
+            goalInput.disabled = true;
+            sendBtn.disabled = true;
+            statusEl.textContent = 'Status: Executing...';
+            log(`Goal received: "${goal}"`, 'system');
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ goal })
+                });
+
+                // Set up event source for streaming logs
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    
+                    lines.forEach(line => {
+                        if (line.trim()) {
+                            if (line.includes('Action') || line.includes('Click') || line.includes('Type')) {
+                                log(line, 'action');
+                            } else {
+                                log(line, 'thought');
+                            }
+                        }
+                    });
+                }
+
+                log('Task completed successfully.', 'system');
+                statusEl.textContent = 'Status: Task Complete';
+            } catch (err) {
+                log(`Error: ${err.message}`, 'system');
+                statusEl.textContent = 'Status: Error';
+            } finally {
+                goalInput.disabled = false;
+                sendBtn.disabled = false;
+                goalInput.value = '';
+            }
+        }
+
+        sendBtn.addEventListener('click', executeTask);
+    </script>
+</body>
+</html>

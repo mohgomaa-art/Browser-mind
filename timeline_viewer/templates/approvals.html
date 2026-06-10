@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% set active = 'approvals' %}
+{% block title %}Approvals — BrowserMind Timeline{% endblock %}
+
+{% block body %}
+<section class="banner">
+  <div class="card">
+    <div class="label">Pending</div>
+    <div class="value">{{ pending|length }}</div>
+    <div class="sub">awaiting decision</div>
+  </div>
+  <div class="card">
+    <div class="label">Decisions logged</div>
+    <div class="value">{{ decisions|length }}</div>
+    <div class="sub">in <code>approval_decisions.jsonl</code></div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Pending approvals</h2>
+  {% if pending %}
+  <p style="color: var(--muted); font-size: 12px;">
+    Steps where the policy engine raised <code>actual_outcome="ASK"</code>.
+    Approving here writes a decision record. Whether the runtime acts on it is
+    governed separately — Phase 1 records the decision; subsequent phases route it
+    into execution.
+  </p>
+  <div class="steps">
+    {% for p in pending %}
+    <div class="step failed">
+      <div class="seq">#{{ p.step_seq }}</div>
+      <div class="summary">
+        <div class="action">
+          {{ p.action or '?' }}
+          {% if p.role %}<span style="color: var(--muted);">[{{ p.role }}]</span>{% endif %}
+          {% if p.name %}— "{{ p.name }}"{% endif %}
+        </div>
+        <div class="meta">
+          {{ p.template_name or '—' }} · {{ p.environment or '—' }} ·
+          <a href="/execution/{{ p.execution_id }}">{{ p.execution_id[:8] }}</a> ·
+          <span class="timestamp">{{ p.timestamp[:19].replace('T', ' ') if p.timestamp else '' }}</span>
+        </div>
+        {% if p.evidence %}
+          <div class="meta mono" style="margin-top: 4px;">{{ p.evidence }}</div>
+        {% endif %}
+        <form method="post" action="/approvals/decide" style="margin-top: 8px; display: flex; gap: 8px; align-items: center;">
+          <input type="hidden" name="execution_id" value="{{ p.execution_id }}">
+          <input type="hidden" name="step_seq" value="{{ p.step_seq }}">
+          <input type="text" name="reason" placeholder="reason (optional)" style="flex: 1; min-width: 160px;">
+          <input type="text" name="operator" placeholder="operator" style="width: 120px;">
+          <button type="submit" name="decision" value="approved" class="pill ok" style="cursor: pointer; border: 0; padding: 6px 14px;">Approve</button>
+          <button type="submit" name="decision" value="rejected" class="pill fail" style="cursor: pointer; border: 0; padding: 6px 14px;">Reject</button>
+        </form>
+      </div>
+      <div class="timestamp">{{ p.timestamp[11:19] if p.timestamp else '' }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+    <div class="empty">
+      No pending approvals. The Policy Engine has not raised any
+      <code>actual_outcome="ASK"</code> records in the current ledger.
+    </div>
+  {% endif %}
+</section>
+
+<section class="section">
+  <h2>Decision history ({{ decisions|length }})</h2>
+  {% if decisions %}
+  <table class="executions">
+    <thead>
+      <tr>
+        <th>Timestamp</th>
+        <th>Decision</th>
+        <th>Execution</th>
+        <th>Step</th>
+        <th>Operator</th>
+        <th>Reason</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in decisions %}
+      <tr>
+        <td class="timestamp">{{ d.timestamp[:19].replace('T', ' ') }}</td>
+        <td>
+          <span class="pill {{ 'ok' if d.decision == 'approved' else 'fail' }}">{{ d.decision }}</span>
+        </td>
+        <td class="id-short"><a href="/execution/{{ d.execution_id }}">{{ d.execution_id[:8] }}</a></td>
+        <td class="mono">#{{ d.step_seq }}</td>
+        <td>{{ d.operator or '—' }}</td>
+        <td>{{ d.reason or '' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <div class="empty">No decisions recorded.</div>
+  {% endif %}
+</section>
+{% endblock %}

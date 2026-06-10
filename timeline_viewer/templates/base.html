@@ -1,0 +1,28 @@
+{# Base layout for the Timeline Viewer. #}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}BrowserMind Timeline{% endblock %}</title>
+  <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <header>
+    <h1>BrowserMind Timeline</h1>
+    <span class="badge">read-only · localhost</span>
+    <nav>
+      <a href="/" {% if active == 'executions' %}class="active"{% endif %}>Executions</a>
+      <a href="/failures" {% if active == 'failures' %}class="active"{% endif %}>Failures</a>
+      <a href="/teacher" {% if active == 'teacher' %}class="active"{% endif %}>Teacher</a>
+      <a href="/approvals" {% if active == 'approvals' %}class="active"{% endif %}>Approvals</a>
+      <a href="/live" {% if active == 'live' %}class="active"{% endif %}>Live</a>
+      <a href="/dyads" {% if active == 'dyads' %}class="active"{% endif %}>Dyads</a>
+      <a href="/snapshots" {% if active == 'snapshots' %}class="active"{% endif %}>Trend</a>
+    </nav>
+  </header>
+  <main class="container">
+    {% block body %}{% endblock %}
+  </main>
+</body>
+</html>

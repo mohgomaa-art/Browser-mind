@@ -1,0 +1,14 @@
+task_id: ecommerce_checkout_generic
+description: Generic e-commerce order completion — order placed and confirmation rendered
+rationale: >
+  An order is confirmed when the URL indicates a post-checkout destination
+  (thank-you, order-confirmation, checkout-complete) AND the page carries
+  explicit confirmation text, ruling out false positives from marketing text.
+conditions:
+  - kind: url_contains
+    target: "thank"
+    label: url_thank_you
+  - kind: element_text_contains
+    target: "h1, h2, [role='heading'], .order-confirmation, [data-testid='confirmation-heading']"
+    value: "order"
+    label: confirmation_heading_contains_order

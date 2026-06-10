@@ -1,0 +1,6 @@
+workflow: exp_demoqa_form
+success:
+  - type: element_exists
+    selector: "#output #name"
+  - type: element_exists
+    selector: "#output #email"

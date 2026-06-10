@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% set active = 'executions' %}
+{% block title %}Execution {{ detail.execution_id[:8] }} — BrowserMind Timeline{% endblock %}
+
+{% block body %}
+<div class="crumbs"><a href="/">← All executions</a></div>
+
+<section class="banner">
+  <div class="card">
+    <div class="label">Outcome</div>
+    <div class="value">
+      {% if detail.overall_success %}
+        <span class="pill ok">success</span>
+      {% else %}
+        <span class="pill fail">failed</span>
+      {% endif %}
+    </div>
+    <div class="sub">{{ 'Execution-scope record present' if detail.has_execution_record is defined and detail.has_execution_record else 'Inferred from steps' }}</div>
+  </div>
+  <div class="card">
+    <div class="label">Step success</div>
+    <div class="value">{{ '%.0f%%' % (detail.success_rate * 100) }}</div>
+    <div class="sub">{{ detail.successful_steps }} / {{ detail.total_steps }}</div>
+  </div>
+  <div class="card">
+    <div class="label">Effect verified</div>
+    <div class="value">{{ '%.0f%%' % (detail.effect_verified_rate * 100) }}</div>
+    <div class="sub">of successful steps</div>
+  </div>
+  <div class="card">
+    <div class="label">Environment</div>
+    <div class="value mono" style="font-size: 16px;">{{ detail.environment_instance or '—' }}</div>
+    <div class="sub">{{ detail.environment_family or '' }}</div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Header</h2>
+  <ul class="kv-list">
+    <li><span class="k">execution_id</span><span class="v">{{ detail.execution_id }}</span></li>
+    <li><span class="k">template</span><span class="v">{{ detail.template_name or '—' }}</span></li>
+    <li><span class="k">started_at</span><span class="v">{{ detail.started_at }}</span></li>
+    <li><span class="k">ended_at</span><span class="v">{{ detail.ended_at }}</span></li>
+    {% if detail.execution_evidence %}
+      <li><span class="k">evidence</span><span class="v">{{ detail.execution_evidence }}</span></li>
+    {% endif %}
+  </ul>
+</section>
+
+<section class="section">
+  <h2>Steps ({{ detail.steps|length }})</h2>
+  {% if detail.steps %}
+  <div class="steps">
+    {% for s in detail.steps %}
+      {% set m = s.metrics or {} %}
+      <div class="step {{ 'ok' if s.success else 'failed' }}">
+        <div class="seq">#{{ m.step_seq if m.step_seq is not none else '?' }}</div>
+        <div class="summary">
+          <div class="action">
+            {{ m.action or '?' }}
+            {% if m.role %}<span style="color: var(--muted);">[{{ m.role }}]</span>{% endif %}
+            {% if m.name %}— "{{ m.name }}"{% endif %}
+          </div>
+          <div class="meta">
+            {% if s.success %}
+              resolved by <span class="mono">{{ m.resolved_by or '?' }}</span>
+              {% if m.recovered_by %} · recovered by <span class="mono">{{ m.recovered_by }}</span>{% endif %}
+              {% if m.effect_verified is sameas true %}
+                · <span class="pill ok">effect verified</span>
+              {% elif m.effect_verified is sameas false %}
+                · <span class="pill warn">effect probe failed</span>
+              {% else %}
+                · <span class="pill muted">no probe</span>
+              {% endif %}
+              {% if m.resolution_time_ms is not none %} · {{ m.resolution_time_ms }}ms{% endif %}
+            {% else %}
+              <span class="pill fail">{{ m.failure_class or 'failed' }}</span>
+              {% if m.failure_layer %} · layer: {{ m.failure_layer }}{% endif %}
+              {% if m.root_cause %} · cause: {{ m.root_cause }}{% endif %}
+            {% endif %}
+          </div>
+          {% if s.evidence %}
+            <div class="meta mono" style="margin-top: 4px;">{{ s.evidence }}</div>
+          {% endif %}
+        </div>
+        <div class="timestamp">{{ s.timestamp[11:19] if s.timestamp else '' }}</div>
+      </div>
+    {% endfor %}
+  </div>
+  {% else %}
+    <div class="empty">No step records found for this execution.</div>
+  {% endif %}
+</section>
+
+<details class="raw">
+  <summary>Raw JSON (all step records)</summary>
+  <pre>{{ detail | tojson(indent=2) }}</pre>
+</details>
+{% endblock %}

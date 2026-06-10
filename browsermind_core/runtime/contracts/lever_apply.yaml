@@ -1,0 +1,11 @@
+task_id: lever_apply
+description: Lever job application submitted
+rationale: |
+  Lever's submitted-application page shows "Thanks for applying"
+  in the body. URL stays on lever.co or jobs.lever.co with the
+  posting id but is followed by a confirmation banner.
+conditions:
+  - kind: element_text_contains
+    target: body
+    value: thanks for applying
+    label: Lever confirmation banner visible
